@@ -59,3 +59,8 @@ def predict():
         full_description += f". Sign says: {cleaned_text}"
 
     return jsonify({"description": full_description.strip()})
+
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
