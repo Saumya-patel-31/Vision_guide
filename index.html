@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VisionGuide Online</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #121212;
+      color: #f0f0f0;
+      text-align: center;
+      padding: 2rem;
+    }
+    video, canvas {
+      max-width: 90%;
+      border: 2px solid #00ffcc;
+      border-radius: 8px;
+    }
+    button {
+      margin: 1rem;
+      padding: 10px 20px;
+      background-color: #00ffcc;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>VisionGuide</h1>
+  <video id="video" autoplay muted playsinline></video><br>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <button onclick="captureFrame()">Describe Scene</button>
+  <p id="output">Click to hear what's around you!</p>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const output = document.getElementById('output');
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => video.srcObject = stream)
+      .catch(err => console.error(err));
+
+    function captureFrame() {
+      const ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0);
+
+      canvas.toBlob(async (blob) => {
+        const formData = new FormData();
+        formData.append('image', blob, 'frame.jpg');
+        const res = await fetch('/predict', { method: 'POST', body: formData });
+        const data = await res.json();
+        output.innerText = data.description;
+      }, 'image/jpeg');
+    }
+  </script>
+</body>
+</html>
